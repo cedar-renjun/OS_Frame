@@ -1,5 +1,7 @@
 
-#include "UART.h"
+#include "includes.h"
+
+extern FIFO_S_t* PC_Tx;
 
 void UART1_Init        (void)
 {
@@ -51,31 +53,93 @@ void UART1_Init        (void)
 
 void UART1_PrintCh     (uint8_t ch)
 {
+    OS_ERR         err;
+    CPU_TS         ts;
+    
+    OSMutexPend((OS_MUTEX   *)&PC_UART_DEVICE,
+            (OS_TICK     )0,
+            (OS_OPT      )OS_OPT_PEND_BLOCKING,
+            (CPU_TS     *)&ts,
+            (OS_ERR     *)&err);
+    
     /* Loop until USARTy DR register is empty */ 
     while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
 
     /* Send one byte from USARTy to USARTz */
     USART_SendData(USART1, (uint8_t)ch);
-}
+    
+    OSMutexPost((OS_MUTEX   *)&PC_UART_DEVICE,
+                (OS_OPT      )OS_OPT_POST_NONE,
+                (OS_ERR     *)&err);
+    }
 
 void UART1_PrintStr    (uint8_t* str)
 {
+#if 0
     uint8_t i = 0;
 
     while(str[i] != '\0')
     {
         UART1_PrintCh(str[i++]);
     }
+#else
+
+    uint8_t i = 0;
+    OS_ERR         err;
+    CPU_TS         ts;
+
+    OSMutexPend((OS_MUTEX   *)&PC_UART_DEVICE,
+            (OS_TICK     )0,
+            (OS_OPT      )OS_OPT_PEND_BLOCKING,
+            (CPU_TS     *)&ts,
+            (OS_ERR     *)&err);
+    
+    while(str[i] != '\0')
+    {
+        while(FIFO_S_IsFull(PC_Tx));
+        FIFO_S_Put(PC_Tx, str[i]);
+    }
+    
+    OSMutexPost((OS_MUTEX   *)&PC_UART_DEVICE,
+                (OS_OPT      )OS_OPT_POST_NONE,
+                (OS_ERR     *)&err);
+    
+    USART_ITConfig(USART1, USART_IT_TXE, ENABLE);
+#endif
 }
 
 void UART1_PrintBlock  (uint8_t* pBuf, uint8_t size)
 {
+#if 0
     uint8_t i = 0;
     
     for(i = 0; i < size; i++)
     {
         UART1_PrintCh(pBuf[i]);
     }
+#else
+    uint8_t i = 0;
+    OS_ERR         err;
+    CPU_TS         ts;
+
+    OSMutexPend((OS_MUTEX   *)&PC_UART_DEVICE,
+                (OS_TICK     )0,
+                (OS_OPT      )OS_OPT_PEND_BLOCKING,
+                (CPU_TS     *)&ts,
+                (OS_ERR     *)&err);
+    
+    for(i = 0; i < size; i++)
+    {
+        while(FIFO_S_IsFull(PC_Tx));
+        FIFO_S_Put(PC_Tx, pBuf[i]);
+    }
+    
+    OSMutexPost((OS_MUTEX   *)&PC_UART_DEVICE,
+                (OS_OPT      )OS_OPT_POST_NONE,
+                (OS_ERR     *)&err);
+    
+    USART_ITConfig(USART1, USART_IT_TXE, ENABLE);
+#endif
 }
 
 void UART2_Init        (void)

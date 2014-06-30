@@ -59,3 +59,20 @@ void LED_Off(uint32_t id)
     }
 }
 
+void LED_Triggle(uint32_t id)
+{
+    switch(id)
+    {
+        case 0:
+        {
+            GPIOA->ODR ^= GPIO_Pin_2;
+            break;
+        }
+
+        default:
+        {
+            break;
+        }
+    }
+}
+

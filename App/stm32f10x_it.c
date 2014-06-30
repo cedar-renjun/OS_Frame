@@ -162,6 +162,54 @@ void SysTick_Handler(void)
 {
 }*/
 
+
+void USART1_IRQHandler(void)
+{
+    extern FIFO_S_t* PC_Tx;
+    
+    uint8_t Ch;
+    uint8_t MsgLen = 0;
+    static uint8_t Membuf[50];
+    OS_ERR err;    
+
+    OSIntEnter();
+    
+    if(USART_GetITStatus(USART1, USART_IT_RXNE) != RESET)
+    {
+        Ch = USART_ReceiveData(USART1);
+        MsgLen = FrameUnpack(Ch, &Membuf[0]);
+        if(MsgLen != 0)
+        {
+            CPU_INT08U * pMsg = (CPU_INT08U *)OSMemGet((OS_MEM  *)&PC_Msg,
+                                                       (OS_ERR  *)&err);
+            if(err == OS_ERR_NONE)
+            {
+                memcpy((void*)pMsg, (void*)&Membuf[0], MsgLen);
+                // Send Message to Main Process
+                OSTaskQPost((OS_TCB     *)&AppTaskPcParserTCB,
+                            (void       *)pMsg,
+                            (OS_MSG_SIZE )MsgLen,
+                            (OS_OPT      )OS_OPT_POST_FIFO,
+                            &err);
+            }
+        }
+    }
+
+    if(USART_GetITStatus(USART1, USART_IT_TXE) != RESET)
+    {        
+       if(FIFO_S_IsEmpty(PC_Tx))
+       {
+           USART_ITConfig(USART1, USART_IT_TXE, DISABLE);
+       }
+       else
+       {
+           Ch = FIFO_S_Get(PC_Tx);
+           USART_SendData(USART1, Ch);
+       }
+    }
+    OSIntExit();
+}
+
 /**
   * @}
   */ 

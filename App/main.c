@@ -3,38 +3,16 @@
 static  OS_TCB   AppTaskStartTCB; 
 static  CPU_STK  AppTaskStartStk[APP_TASK_START_STK_SIZE];
 
-static  OS_TCB   AppTaskLEDTCB; 
-static  CPU_STK  AppTaskLEDStk[APP_TASK_START_STK_SIZE];
-
 static  OS_TMR   RF_RetransTimer;
 
-/*
-*********************************************************************************************************
-*                                         FUNCTION PROTOTYPES
-*********************************************************************************************************
-*/
-
 static  void  AppTaskStart  (void *p_arg);
-static  void  AppTaskLED    (void *p_arg);
 
-static  void  LED_Triggle(void *p_tmr, void *p_arg)
-{
-    GPIOA->ODR ^= GPIO_Pin_2;
-}
+OS_MUTEX    PC_UART_DEVICE;
 
+OS_MEM PC_Msg;
+CPU_INT08U PC_MsgBuf[PC_MSG_CNT][PC_MSG_SIZE];
 
-/*
-*********************************************************************************************************
-*                                                main()
-*
-* Description : This is the standard entry point for C code.  It is assumed that your code will call
-*               main() once you have performed all necessary initialization.
-*
-* Arguments   : none
-*
-* Returns     : none
-*********************************************************************************************************
-*/
+FIFO_S_t* PC_Tx;
 
 int  main (void)
 {
@@ -52,30 +30,14 @@ int  main (void)
                  (CPU_STK    *)&AppTaskStartStk[0],
                  (CPU_STK_SIZE)APP_TASK_START_STK_SIZE / 10,
                  (CPU_STK_SIZE)APP_TASK_START_STK_SIZE,
-                 (OS_MSG_QTY  )0,
+                 (OS_MSG_QTY  )5,
                  (OS_TICK     )0,
                  (void       *)0,
                  (OS_OPT      )(OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR),
                  (OS_ERR     *)&err);
-#if 0
-    OSTaskCreate((OS_TCB     *)&AppTaskLEDTCB,
-                 (CPU_CHAR   *)"App Task LED",
-                 (OS_TASK_PTR )AppTaskLED, 
-                 (void       *)0,
-                 (OS_PRIO     )APP_TASK_LED_PRIO,
-                 (CPU_STK    *)&AppTaskLEDStk[0],
-                 (CPU_STK_SIZE)APP_TASK_START_STK_SIZE / 10,
-                 (CPU_STK_SIZE)APP_TASK_START_STK_SIZE,
-                 (OS_MSG_QTY  )0,
-                 (OS_TICK     )0,
-                 (void       *)0,
-                 (OS_OPT      )(OS_OPT_TASK_STK_CHK | OS_OPT_TASK_STK_CLR),
-                 (OS_ERR     *)&err);
-#endif
 
     OSStart(&err);                                              /* Start multitasking (i.e. give control to uC/OS-III). */
 }
-
 
 /*
 *********************************************************************************************************
@@ -129,26 +91,31 @@ static  void  AppTaskStart (void *p_arg)
     OSTmrStart(&RF_RetransTimer, &err);
     */
     
+    PC_Tx = FIFO_S_Create(PC_TX_BUFF_SIZE);
+    
+    // Create Memory Manage
+    OSMemCreate((OS_MEM      *) &PC_Msg,
+                (CPU_CHAR    *) "PC Message Queue",
+                (void        *) &PC_MsgBuf[0][0],
+                (OS_MEM_QTY   ) PC_MSG_CNT,
+                (OS_MEM_SIZE  ) PC_MSG_SIZE,
+                (OS_ERR      *) &err);
+    
+    // Create UART Device Lock
+    OSMutexCreate((OS_MUTEX  *) &PC_UART_DEVICE,
+                  (CPU_CHAR  *) "UART Device Mutex Lock",
+                  &err);
+    
+    // Create CC1101 Task
+    TaskCreate_CC1101();
+    
+    // Create PC Parse
+    TaskCreate_PcParser();
+    
     while (DEF_TRUE) {                                            /* Task body, always written as an infinite loop.   */
     GPIOA->ODR ^= GPIO_Pin_2;
-    PC_PrintStr("Hello,world\r\n");
     OSTimeDlyHMSM( 0, 0, 0, 50,
                   OS_OPT_TIME_HMSM_STRICT, 
-                  &err);
-    }
-}
-
-static  void  AppTaskLED (void *p_arg)
-{
-    OS_ERR      err;
-
-   (void)p_arg;
-
-    while (DEF_TRUE) {                                            /* Task body, always written as an infinite loop.   */
-    GPIOA->ODR ^= GPIO_Pin_2;
-
-    OSTimeDlyHMSM( 0, 0, 0, 22,
-                  OS_OPT_TIME_HMSM_STRICT, 
-                  &err);
+                  &err);   
     }
 }
