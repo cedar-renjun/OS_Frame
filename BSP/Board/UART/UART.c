@@ -53,6 +53,7 @@ void UART1_Init        (void)
 
 void UART1_PrintCh     (uint8_t ch)
 {
+#if 0
     OS_ERR         err;
     CPU_TS         ts;
     
@@ -71,7 +72,14 @@ void UART1_PrintCh     (uint8_t ch)
     OSMutexPost((OS_MUTEX   *)&PC_UART_DEVICE,
                 (OS_OPT      )OS_OPT_POST_NONE,
                 (OS_ERR     *)&err);
-    }
+#else
+    /* Loop until USARTy DR register is empty */ 
+    while(USART_GetFlagStatus(USART1, USART_FLAG_TXE) == RESET);
+
+    /* Send one byte from USARTy to USARTz */
+    USART_SendData(USART1, (uint8_t)ch);
+#endif
+}
 
 void UART1_PrintStr    (uint8_t* str)
 {
@@ -82,6 +90,7 @@ void UART1_PrintStr    (uint8_t* str)
     {
         UART1_PrintCh(str[i++]);
     }
+    
 #else
 
     uint8_t i = 0;
@@ -93,12 +102,18 @@ void UART1_PrintStr    (uint8_t* str)
             (OS_OPT      )OS_OPT_PEND_BLOCKING,
             (CPU_TS     *)&ts,
             (OS_ERR     *)&err);
-    
+#if 0    
     while(str[i] != '\0')
     {
         while(FIFO_S_IsFull(PC_Tx));
         FIFO_S_Put(PC_Tx, str[i]);
     }
+#else
+    while(str[i] != '\0')
+    {
+        UART1_PrintCh(str[i++]);
+    }
+#endif    
     
     OSMutexPost((OS_MUTEX   *)&PC_UART_DEVICE,
                 (OS_OPT      )OS_OPT_POST_NONE,
@@ -130,8 +145,12 @@ void UART1_PrintBlock  (uint8_t* pBuf, uint8_t size)
     
     for(i = 0; i < size; i++)
     {
+#if 0
         while(FIFO_S_IsFull(PC_Tx));
         FIFO_S_Put(PC_Tx, pBuf[i]);
+#else
+        UART1_PrintCh(pBuf[i]);
+#endif
     }
     
     OSMutexPost((OS_MUTEX   *)&PC_UART_DEVICE,

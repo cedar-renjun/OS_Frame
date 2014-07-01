@@ -105,28 +105,32 @@ static void Parser_property (void* pData)
 {
     uint8_t        datalen;
     OS_ERR         err;
-#if 0
-    CAR_INFO_T     Cmd_CarInfo;    
+    CPU_TS         ts;
+    CAR_INFO_T     Cmd_CarInfo;
+
+    OSMutexPend((OS_MUTEX   *)&GLOBAL_DATA_PROTECT,
+                (OS_TICK     )0,
+                (OS_OPT      )OS_OPT_PEND_BLOCKING,
+                (CPU_TS     *)&ts,
+                (OS_ERR     *)&err);
+    memcpy((void*)&Cmd_CarInfo, (void*)&g_Cmd_CarInfo, sizeof(CAR_INFO_T));
+    OSMutexPost((OS_MUTEX   *)&GLOBAL_DATA_PROTECT,
+                (OS_OPT      )OS_OPT_POST_NONE,
+                (OS_ERR     *)&err);
+        
     Cmd_CarInfo.seq_number.value = *(uint16_t*)pData;
-    Cmd_CarInfo.cmd_id           = CMD_PROPERTY;
-    Cmd_CarInfo.data.car_id      = CAR_ID_A_0;
-    Cmd_CarInfo.data.weapon      = WEAPON_GUN_BB;
-    Cmd_CarInfo.data.blood       = 10000;
-    memcpy((void*)&(Cmd_CarInfo.data.name[0]), CAR_NAME, sizeof(CAR_NAME));
-#else
-    g_Cmd_CarInfo.seq_number.value = *(uint16_t*)pData;
-    g_Cmd_CarInfo.cmd_id           = CMD_PROPERTY;
-#endif
-    datalen = FramePack((uint8_t *)&(g_Cmd_CarInfo.seq_number.value),
-                        sizeof(SEQ_NUM) + sizeof(uint16_t) + sizeof(CAR_INFO), (uint8_t *)&g_Cmd_CarInfo);
+    Cmd_CarInfo.cmd_id           =  (uint16_t )CMD_PROPERTY;
+
+    datalen = FramePack((uint8_t *)&(Cmd_CarInfo.seq_number.value),
+                        sizeof(SEQ_NUM) + sizeof(uint16_t) + sizeof(CAR_INFO), (uint8_t *)&Cmd_CarInfo);
 
     OSMemPut((OS_MEM  *)&PC_Msg,
              (void    *)pData,
              (OS_ERR  *)&err);
-    
+
     if(datalen != 0)
     {
-        PC_PrintBlock((uint8_t *)&(g_Cmd_CarInfo), sizeof(CAR_INFO_T));
+        PC_PrintBlock((uint8_t *)&(Cmd_CarInfo), sizeof(CAR_INFO_T));
     }
 }
 
@@ -134,51 +138,33 @@ static void Parser_status (void* pData)
 {
     uint8_t        datalen;
     OS_ERR         err;
-#if 0
+    CPU_TS         ts;
     CAR_STATUS_T   Cmd_CarStatus;
-#ifdef PC_DEMO
-    static uint16_t index = 0;
-    index++;
-    Cmd_CarStatus.seq_number.value  = *(uint16_t*)pData;
-    Cmd_CarStatus.cmd_id            = CMD_STATUS;
-    Cmd_CarStatus.data.power        = index%100;
-    Cmd_CarStatus.data.bullet       = index%100;
-    Cmd_CarStatus.data.blood_cur    = (index*100)%10000;
-    Cmd_CarStatus.data.position.x   = index%100;
-    Cmd_CarStatus.data.position.y   = index%100;
-    Cmd_CarStatus.data.speed.x      = index%100;
-    Cmd_CarStatus.data.speed.y      = index%100;
-    Cmd_CarStatus.data.speed.r      = index%100;
-    Cmd_CarStatus.data.linkquality  = index%100;
-#else    
-    Cmd_CarStatus.seq_number.value  = *(uint16_t*)pData;
-    Cmd_CarStatus.cmd_id            = CMD_STATUS;
-    Cmd_CarStatus.data.power        = 100;
-    Cmd_CarStatus.data.bullet       = 100;
-    Cmd_CarStatus.data.blood_cur    = 5000;
-    Cmd_CarStatus.data.position.x   = 10;
-    Cmd_CarStatus.data.position.y   = 20;
-    Cmd_CarStatus.data.speed.x      = 30;
-    Cmd_CarStatus.data.speed.y      = 40;
-    Cmd_CarStatus.data.speed.r      = 50;
-    Cmd_CarStatus.data.linkquality  = 60;
-#endif
-    
-#else
-    g_Cmd_CarStatus.seq_number.value  = *(uint16_t*)pData;
-    g_Cmd_CarStatus.cmd_id            = CMD_STATUS;
-#endif
 
-    datalen = FramePack((uint8_t *)&(g_Cmd_CarStatus.seq_number.value),
-                        sizeof(SEQ_NUM) + sizeof(uint16_t) + sizeof(CAR_STATUS), (uint8_t *)&g_Cmd_CarStatus);
+    OSMutexPend((OS_MUTEX   *)&GLOBAL_DATA_PROTECT,
+                (OS_TICK     )0,
+                (OS_OPT      )OS_OPT_PEND_BLOCKING,
+                (CPU_TS     *)&ts,
+                (OS_ERR     *)&err);
+    memcpy((void*)&Cmd_CarStatus, (void*)&g_Cmd_CarStatus, sizeof(CAR_STATUS_T));
+    OSMutexPost((OS_MUTEX   *)&GLOBAL_DATA_PROTECT,
+                (OS_OPT      )OS_OPT_POST_NONE,
+                (OS_ERR     *)&err);
+    
+    
+    Cmd_CarStatus.seq_number.value  = *(uint16_t*)pData;
+    Cmd_CarStatus.cmd_id            =  (uint16_t )CMD_STATUS;
+
+    datalen = FramePack((uint8_t *)&(Cmd_CarStatus.seq_number.value),
+                        sizeof(SEQ_NUM) + sizeof(uint16_t) + sizeof(CAR_STATUS), (uint8_t *)&Cmd_CarStatus);
 
     OSMemPut((OS_MEM  *)&PC_Msg,
              (void    *)pData,
              (OS_ERR  *)&err);
-        
+
     if(datalen != 0)
     {
-        PC_PrintBlock((uint8_t *)&(g_Cmd_CarStatus), sizeof(CAR_STATUS_T));
+        PC_PrintBlock((uint8_t *)&(Cmd_CarStatus), sizeof(CAR_STATUS_T));
     }
 }
 
@@ -210,27 +196,30 @@ static void Parser_control (void* pData)
 static void Parser_ping (void* pData)
 {
     OS_ERR         err;
-    uint8_t        datalen;
+    uint8_t        datalen;    
     PING_T         Cmd_Ping;
+    CPU_TS         ts;
     
-#ifdef PC_DEMO
-    static uint16_t index = 0;
-#endif
-
+    OSMutexPend((OS_MUTEX   *)&GLOBAL_DATA_PROTECT,
+                (OS_TICK     )0,
+                (OS_OPT      )OS_OPT_PEND_BLOCKING,
+                (CPU_TS     *)&ts,
+                (OS_ERR     *)&err);
+    memcpy((void*)&Cmd_Ping, (void*)&g_Cmd_Ping, sizeof(PING_T));
+    OSMutexPost((OS_MUTEX   *)&GLOBAL_DATA_PROTECT,
+                (OS_OPT      )OS_OPT_POST_NONE,
+                (OS_ERR     *)&err);
+    
     Cmd_Ping.seq_number.value = *(uint16_t*)pData;
-    Cmd_Ping.cmd_id           = CMD_PING;
-#ifndef PC_DEMO
-    Cmd_Ping.data.status      = ERR_NONE;
-#else    
-    Cmd_Ping.data.status      = index++%3;
-#endif
+    Cmd_Ping.cmd_id           =  (uint16_t)CMD_PING;
+    
     datalen = FramePack((uint8_t *)&(Cmd_Ping.seq_number.value),
                         sizeof(SEQ_NUM) + sizeof(uint16_t) + sizeof(PING), (uint8_t *)&Cmd_Ping);
 
     OSMemPut((OS_MEM  *)&PC_Msg,
              (void    *)pData,
              (OS_ERR  *)&err);
-                            
+
     if(datalen != 0)
     { 
         PC_PrintBlock((uint8_t *)&(Cmd_Ping), sizeof(PING_T));

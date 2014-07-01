@@ -9,8 +9,14 @@ static  void  AppTaskStart  (void *p_arg);
 
 OS_MUTEX    PC_UART_DEVICE;
 
-OS_MEM PC_Msg;
+// Global Variable Protect
+OS_MUTEX    GLOBAL_DATA_PROTECT;
+
+OS_MEM     PC_Msg;
 CPU_INT08U PC_MsgBuf[PC_MSG_CNT][PC_MSG_SIZE];
+
+OS_MEM     RF_Msg;
+CPU_INT08U RF_MsgBuf[RF_MSG_CNT][RF_MSG_SIZE];
 
 FIFO_S_t* PC_Tx;
 
@@ -101,9 +107,21 @@ static  void  AppTaskStart (void *p_arg)
                 (OS_MEM_SIZE  ) PC_MSG_SIZE,
                 (OS_ERR      *) &err);
     
+    OSMemCreate((OS_MEM      *) &RF_Msg,
+                (CPU_CHAR    *) "RF Message Queue",
+                (void        *) &RF_MsgBuf[0][0],
+                (OS_MEM_QTY   ) RF_MSG_CNT,
+                (OS_MEM_SIZE  ) RF_MSG_SIZE,
+                (OS_ERR      *) &err);
+    
     // Create UART Device Lock
     OSMutexCreate((OS_MUTEX  *) &PC_UART_DEVICE,
                   (CPU_CHAR  *) "UART Device Mutex Lock",
+                  &err);
+    
+    // Create Global Data Protect Lock    
+    OSMutexCreate((OS_MUTEX  *) &GLOBAL_DATA_PROTECT,
+                  (CPU_CHAR  *) "Global Data Mutex Lock",
                   &err);
     
     // Create CC1101 Task
@@ -112,8 +130,12 @@ static  void  AppTaskStart (void *p_arg)
     // Create PC Parse
     TaskCreate_PcParser();
     
+#ifdef PC_SIMULATION
+    TaskCreate_Simluate();
+#endif
+    
     while (DEF_TRUE) {                                            /* Task body, always written as an infinite loop.   */
-    GPIOA->ODR ^= GPIO_Pin_2;
+    //GPIOA->ODR ^= GPIO_Pin_2;
     OSTimeDlyHMSM( 0, 0, 0, 50,
                   OS_OPT_TIME_HMSM_STRICT, 
                   &err);   

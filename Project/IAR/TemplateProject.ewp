@@ -1848,6 +1848,9 @@
       <name>$PROJ_DIR$\..\..\App\protocal.h</name>
     </file>
     <file>
+      <name>$PROJ_DIR$\..\..\App\simulate.c</name>
+    </file>
+    <file>
       <name>$PROJ_DIR$\..\..\App\stm32f10x_it.c</name>
     </file>
     <file>

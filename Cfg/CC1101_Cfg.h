@@ -24,8 +24,8 @@ extern "C"
  *************************************************************************************************/
 
 #define MCU_TYPE                    MCU_STM32
-#define CC1101_MODE                 GFSK_433_250K_POLL
-//#define CC1101_MODE                 GFSK_433_250K_INT
+//#define CC1101_MODE                 GFSK_433_250K_POLL
+#define CC1101_MODE                 GFSK_433_250K_INT
 #define CC1101_ADDR_EN              1
 #define CC1101_DRV_ADDR             0x5A
 

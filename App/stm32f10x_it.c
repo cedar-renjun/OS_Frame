@@ -170,7 +170,7 @@ void USART1_IRQHandler(void)
     uint8_t Ch;
     uint8_t MsgLen = 0;
     static uint8_t Membuf[50];
-    OS_ERR err;    
+    OS_ERR err;
 
     OSIntEnter();
     
@@ -207,6 +207,57 @@ void USART1_IRQHandler(void)
            USART_SendData(USART1, Ch);
        }
     }
+    OSIntExit();
+}
+
+void TIM4_IRQHandler()
+{
+    if(TIM_GetITStatus(TIM4 , TIM_IT_Update) == SET)
+    {
+        TIM_ClearITPendingBit(TIM4 , TIM_FLAG_Update);
+        GPIOA->ODR ^= GPIO_Pin_2;
+        //while(1);
+        CC1101_StrobeSend(STROBE_SIDLE);
+        CC1101_StrobeSend(STROBE_SFRX);
+        CC1101_StrobeSend(STROBE_SRX);
+    }
+}
+
+void EXTI15_10_IRQHandler(void)
+{    
+    extern FIFO_t RF_Rx;
+    uint8_t  i       = 0;
+    uint8_t  MsgLen  = 0;
+    OS_ERR   err     = 0;
+    
+    OSIntEnter();
+
+    if(EXTI_GetITStatus(EXTI_Line11) != RESET)
+    {   
+        CPU_INT08U * pMsg = (CPU_INT08U *)OSMemGet((OS_MEM  *)&RF_Msg,
+                                                   (OS_ERR  *)&err);
+        EXTI_ClearITPendingBit(EXTI_Line11);
+        MsgLen = CC1101_PacketRecv_ISR(pMsg, RF_MSG_SIZE);
+        if(0 != MsgLen)
+        {
+            // Send Message to CC1101 Process
+            OSTaskQPost((OS_TCB     *)&AppTaskCC1101TCB,
+                        (void       *)pMsg,
+                        (OS_MSG_SIZE )MsgLen,
+                        (OS_OPT      )OS_OPT_POST_FIFO,
+                        &err);
+        }
+        else
+        {
+            // Broken Packet
+            OSMemPut((OS_MEM  *)&RF_Msg,
+                     (void    *)pMsg,
+                     (OS_ERR  *)&err);
+        }
+        TIM_SetCounter(TIM4, 0x0000);
+        CC1101_StrobeSend(STROBE_SRX);
+    }
+
     OSIntExit();
 }
 

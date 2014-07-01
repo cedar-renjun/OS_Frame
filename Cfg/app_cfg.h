@@ -42,6 +42,10 @@
 #define  APP_TASK_START_PRIO                              2
 
 
+#if 0
+#define PC_SIMULATION
+#endif
+
 /*
 *********************************************************************************************************
 *                                            TASK STACK SIZES
@@ -63,23 +67,31 @@ extern void TaskCreate_CC1101(void);
 extern OS_TCB   AppTaskPcParserTCB;
 extern void TaskCreate_PcParser(void);
 
+// Simulate Task
+#ifdef PC_SIMULATION
+#define  APP_TASK_SIMLUATE_STK_SIZE                       256
+#define  APP_TASK_SIMLUATE_PRIO                           5
+extern OS_TCB   AppTaskSimluateTCB;
+extern void TaskCreate_Simluate(void);
+#endif
+
 // UART Device
 extern OS_MUTEX    PC_UART_DEVICE;
 
-// Memory Manage
+// Global Variable Protect
+extern OS_MUTEX    GLOBAL_DATA_PROTECT;
 
-#define PC_MSG_SIZE                  32
-#define PC_MSG_CNT                   4
+// PC Memory Manage
+#define PC_MSG_SIZE                                       32
+#define PC_MSG_CNT                                        4
 extern  OS_MEM PC_Msg;
 
-// Car Info
-#define CAR_NAME "Car_A"
-
-#define PC_DEMO
+// RF Memory Manage
+#define RF_MSG_SIZE                                       32
+#define RF_MSG_CNT                                        4
+extern  OS_MEM RF_Msg;
 
 // PC Tx FIFO
-
-#define PC_TX_BUFF_SIZE             256
-
+#define PC_TX_BUFF_SIZE                                   256
 
 #endif
