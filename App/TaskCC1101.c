@@ -96,9 +96,14 @@ static  void  AppTaskCC1101 (void *p_arg)
                     OSMutexPost((OS_MUTEX   *)&GLOBAL_DATA_PROTECT,
                                 (OS_OPT      )OS_OPT_POST_NONE,
                                 (OS_ERR     *)&err);
+                    // Release Msg Memory
+                    OSMemPut((OS_MEM  *)&RF_Msg,
+                             (void    *)p_msg,
+                             (OS_ERR  *)&err);
+        
                     break;
                 }
-                
+
             case CMD_STATUS:
                 {
                     OSMutexPend((OS_MUTEX   *)&GLOBAL_DATA_PROTECT,
@@ -110,6 +115,10 @@ static  void  AppTaskCC1101 (void *p_arg)
                     OSMutexPost((OS_MUTEX   *)&GLOBAL_DATA_PROTECT,
                                 (OS_OPT      )OS_OPT_POST_NONE,
                                 (OS_ERR     *)&err);
+                    // Release Msg Memory
+                    OSMemPut((OS_MEM  *)&RF_Msg,
+                             (void    *)p_msg,
+                             (OS_ERR  *)&err);
                     break;
                 }
 
@@ -121,11 +130,16 @@ static  void  AppTaskCC1101 (void *p_arg)
                     datalen = FramePack((uint8_t *)&(g_Cmd_CarAttacked.seq_number.value),
                               sizeof(SEQ_NUM) + sizeof(uint16_t) + sizeof(ATTACKED_INFO), (uint8_t *)&g_Cmd_CarAttacked);
 
+                    // Release Msg Memory
+                    OSMemPut((OS_MEM  *)&RF_Msg,
+                             (void    *)p_msg,
+                             (OS_ERR  *)&err);
+                    
                     if(datalen != 0)
                     { 
                         PC_PrintBlock((uint8_t *)&(g_Cmd_CarAttacked), sizeof(ATTACKED_INFO_T));
                     }
-    
+
                     break;
                 }
             case CMD_EQUIMENT:
@@ -141,18 +155,22 @@ static  void  AppTaskCC1101 (void *p_arg)
                         PC_PrintBlock((uint8_t *)&(g_Cmd_CarEquiment), sizeof(EQUIMENT_INFO_T));
                     }
                     
+                    // Release Msg Memory
+                    OSMemPut((OS_MEM  *)&RF_Msg,
+                             (void    *)p_msg,
+                             (OS_ERR  *)&err);
+                    
                     break;
                 }
 
             default:
-                {                    
+                {          
+                    // Release Msg Memory
+                    OSMemPut((OS_MEM  *)&RF_Msg,
+                             (void    *)p_msg,
+                             (OS_ERR  *)&err);
                     break;
                 }
         }
-
-        // Release Msg Memory
-        OSMemPut((OS_MEM  *)&RF_Msg,
-                 (void    *)p_msg,
-                 (OS_ERR  *)&err);
     }
 }

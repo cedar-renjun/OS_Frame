@@ -56,13 +56,13 @@
 #define  APP_TASK_START_STK_SIZE                         256
 
 // CC1101 Task
-#define  APP_TASK_CC1101_STK_SIZE                        256
+#define  APP_TASK_CC1101_STK_SIZE                        400
 #define  APP_TASK_CC1101_PRIO                            3
 extern OS_TCB   AppTaskCC1101TCB;
 extern void TaskCreate_CC1101(void);
 
 // Pc Parser Task
-#define  APP_TASK_PC_PARSER_STK_SIZE                      256
+#define  APP_TASK_PC_PARSER_STK_SIZE                      400
 #define  APP_TASK_PC_PARSER_PRIO                          4
 extern OS_TCB   AppTaskPcParserTCB;
 extern void TaskCreate_PcParser(void);

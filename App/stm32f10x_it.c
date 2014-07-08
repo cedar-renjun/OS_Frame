@@ -238,22 +238,13 @@ void EXTI15_10_IRQHandler(void)
                                                    (OS_ERR  *)&err);
         EXTI_ClearITPendingBit(EXTI_Line11);
         MsgLen = CC1101_PacketRecv_ISR(pMsg, RF_MSG_SIZE);
-        if(0 != MsgLen)
-        {
-            // Send Message to CC1101 Process
-            OSTaskQPost((OS_TCB     *)&AppTaskCC1101TCB,
-                        (void       *)pMsg,
-                        (OS_MSG_SIZE )MsgLen,
-                        (OS_OPT      )OS_OPT_POST_FIFO,
-                        &err);
-        }
-        else
-        {
-            // Broken Packet
-            OSMemPut((OS_MEM  *)&RF_Msg,
-                     (void    *)pMsg,
-                     (OS_ERR  *)&err);
-        }
+        // Send Message to CC1101 Process
+        OSTaskQPost((OS_TCB     *)&AppTaskCC1101TCB,
+                    (void       *)pMsg,
+                    (OS_MSG_SIZE )MsgLen,
+                    (OS_OPT      )OS_OPT_POST_FIFO,
+                    &err);
+
         TIM_SetCounter(TIM4, 0x0000);
         CC1101_StrobeSend(STROBE_SRX);
     }

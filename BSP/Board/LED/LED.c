@@ -7,7 +7,7 @@ void LED_Init   (void)
 
     RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA, ENABLE);
 
-    gpio.GPIO_Pin   = GPIO_Pin_2; 
+    gpio.GPIO_Pin   = GPIO_Pin_8; 
     gpio.GPIO_Mode  = GPIO_Mode_Out_PP;
     gpio.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(GPIOA, &gpio);
@@ -17,12 +17,12 @@ void LED_Init   (void)
 
 void LED_AllOn  (void)
 {
-    GPIOA->BRR = GPIO_Pin_2;
+    GPIOA->BRR = GPIO_Pin_8;
 }
 
 void LED_AllOff (void)
 {
-    GPIOA->BSRR = GPIO_Pin_2;
+    GPIOA->BSRR = GPIO_Pin_8;
 }
 
 void LED_On(uint32_t id)
@@ -31,7 +31,7 @@ void LED_On(uint32_t id)
     {
         case 0:
         {
-            GPIOA->BRR = GPIO_Pin_2;
+            GPIOA->BRR = GPIO_Pin_8;
             break;
         }
 
@@ -48,7 +48,7 @@ void LED_Off(uint32_t id)
     {
         case 0:
         {
-            GPIOA->BSRR = GPIO_Pin_2;
+            GPIOA->BSRR = GPIO_Pin_8;
             break;
         }
 
@@ -65,7 +65,7 @@ void LED_Triggle(uint32_t id)
     {
         case 0:
         {
-            GPIOA->ODR ^= GPIO_Pin_2;
+            GPIOA->ODR ^= GPIO_Pin_8;
             break;
         }
 

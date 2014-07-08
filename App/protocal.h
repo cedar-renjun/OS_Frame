@@ -33,6 +33,11 @@
 #define CAR_ID_B_6           0x27
 #define CAR_ID_B_7           0x28
 
+// headquarter
+#define HEADQUARTER_A        0x30
+#define HEADQUARTER_B        0x40
+
+
 // Mouse Key Press Flag
 #define KEY_NO_PRESS         0x00
 #define KEY_PRESS            0x01
@@ -42,6 +47,36 @@
 #define WEAPON_GUN_GAS       0x02
 #define WEAPON_GUN_RUB       0x03
 #define WEAPON_CANNON        0x04
+
+
+
+
+
+/*--------------- Attacked Point -------------------*/
+
+//    LF-8        F-1       RF-2
+//      .         .         .
+//        .       .       . 
+//          .     .     . 
+//            .   .   . 
+//              . . . 
+//    L-7. . . . . . . . . . R-3
+//              . . . 
+//            .   .   . 
+//          .     .     . 
+//        .       .       . 
+//      .         .         .
+//    LB-6        B-5         RB-4
+
+#define ATTACK_POINT_NULL    0x00
+#define ATTACK_POINT_F       0x01
+#define ATTACK_POINT_RF      0x02
+#define ATTACK_POINT_R       0x03
+#define ATTACK_POINT_RB      0x04
+#define ATTACK_POINT_B       0x05
+#define ATTACK_POINT_LB      0x06
+#define ATTACK_POINT_L       0x07
+#define ATTACK_POINT_LF      0x08
 
 // Ping error value
 #define ERR_NONE             0x0000
@@ -135,14 +170,17 @@ typedef struct
     uint8_t  left_key_press_flag;                   // 鼠标左键是否按下
     uint8_t  right_key_press_flag;                  // 鼠标右键是否按下
     uint16_t keyboard_value;                        // 当前键盘按键
+    uint16_t reserved;
 }CONTROL_INFO;
 
 #pragma pack(1)
 typedef struct
 {
-    uint16_t      header;
-    CONTROL_INFO  data;    
-    uint8_t       checksum;
+    HEADER        header;
+    SEQ_NUM       seq_number;
+    uint16_t      cmd_id;
+    CONTROL_INFO  data;
+    CHECKSUM      checksum;
 }CONTROL_INFO_T;
 
 /*------------------------------------------- Ping Frame ----------------------------------------*/

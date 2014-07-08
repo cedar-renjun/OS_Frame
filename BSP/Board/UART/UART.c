@@ -168,21 +168,21 @@ void UART2_Init        (void)
     NVIC_InitTypeDef  NVIC_InitStructure;
 
     /* Enable GPIO clock */
-    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOD | RCC_APB2Periph_AFIO, ENABLE);
+    RCC_APB2PeriphClockCmd(RCC_APB2Periph_GPIOA | RCC_APB2Periph_AFIO, ENABLE);
     
     /* Enable USART Clock */
     RCC_APB1PeriphClockCmd(RCC_APB1Periph_USART2, ENABLE);
     
     /* Configure USARTy Rx as input floating */
-    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_6;
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_3;
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_IN_FLOATING;
-    GPIO_Init(GPIOD, &GPIO_InitStructure);
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
     
     /* Configure USARTy Tx as alternate function push-pull */
-    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_5;
+    GPIO_InitStructure.GPIO_Pin   = GPIO_Pin_2;
     GPIO_InitStructure.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_InitStructure.GPIO_Mode  = GPIO_Mode_AF_PP;
-    GPIO_Init(GPIOD, &GPIO_InitStructure);
+    GPIO_Init(GPIOA, &GPIO_InitStructure);
 
     USART_InitStructure.USART_BaudRate            = 115200;
     USART_InitStructure.USART_WordLength          = USART_WordLength_8b;
@@ -193,20 +193,8 @@ void UART2_Init        (void)
 
     /* Configure USARTy */
     USART_Init(USART2, &USART_InitStructure);
-    
-    /* Configure the NVIC Preemption Priority Bits */  
-    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_0);
 
-    /* Enable the USARTy Interrupt */
-    NVIC_InitStructure.NVIC_IRQChannel = USART2_IRQn;
-    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
-    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
-    NVIC_Init(&NVIC_InitStructure);  
-        
     USART_Cmd(USART2, ENABLE);
-    
-    USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);
-    //USART_ITConfig(USART2, USART_IT_TXE, ENABLE);
 }
 
 void UART2_PrintCh     (uint8_t ch)

@@ -20,12 +20,40 @@ CPU_INT08U RF_MsgBuf[RF_MSG_CNT][RF_MSG_SIZE];
 
 FIFO_S_t* PC_Tx;
 
+/*
+typedef struct
+{
+    int16_t  mouse_x;                               // 鼠标坐标X
+    int16_t  mouse_y;                               // 鼠标坐标Y
+    int16_t  mouse_z;                               // 鼠标坐标Z
+    uint8_t  left_key_press_flag;                   // 鼠标左键是否按下
+    uint8_t  right_key_press_flag;                  // 鼠标右键是否按下
+    uint16_t keyboard_value;                        // 当前键盘按键
+    uint16_t reserved;
+}CONTROL_INFO;
+*/
+
 int  main (void)
 {
     OS_ERR  err;
-
-    CPU_IntDis();                                               /* Disable all interrupts.                              */
     
+    /*
+    CONTROL_INFO_T Cmd_Control;
+
+    Cmd_Control.seq_number.value          = (uint16_t) 0x1234;
+    Cmd_Control.cmd_id                    = (uint16_t) CMD_CONTROL;
+    Cmd_Control.data.mouse_x              = (int16_t ) 0x1234;
+    Cmd_Control.data.mouse_y              = (int16_t ) 0x5678;
+    Cmd_Control.data.left_key_press_flag  = (int8_t  ) 0x01;
+    Cmd_Control.data.right_key_press_flag = (int8_t  ) 0x00;
+    Cmd_Control.data.keyboard_value       = (uint16_t) 0x07;
+        
+    FramePack((uint8_t *)&(Cmd_Control.seq_number.value), sizeof(SEQ_NUM) + sizeof(uint16_t) + sizeof(CONTROL_INFO),
+              (uint8_t *)&Cmd_Control);
+    */
+    
+    CPU_IntDis();                                               /* Disable all interrupts.                              */
+
     OSInit(&err);                                               /* Init uC/OS-III.                                      */
 
     OSTaskCreate((OS_TCB     *)&AppTaskStartTCB,                /* Create the start task                                */
@@ -134,10 +162,13 @@ static  void  AppTaskStart (void *p_arg)
     TaskCreate_Simluate();
 #endif
     
-    while (DEF_TRUE) {                                            /* Task body, always written as an infinite loop.   */
-    //GPIOA->ODR ^= GPIO_Pin_2;
-    OSTimeDlyHMSM( 0, 0, 0, 50,
+    while (DEF_TRUE) {
+
+    //RC_PrintStr("Hello,world");
+    LED_Triggle(0);
+
+    OSTimeDlyHMSM( 0, 0, 0, 200,
                   OS_OPT_TIME_HMSM_STRICT, 
-                  &err);   
+                  &err);
     }
 }

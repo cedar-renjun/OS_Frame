@@ -53,7 +53,7 @@ static  void  AppTaskPcParser (void *p_arg)
         if(OS_ERR_NONE == err)
         {
 #ifdef DEBUG
-            LED_Triggle(0);
+            //LED_Triggle(0);
             PC_PrintBlock((uint8_t *)p_msg, msg_size);
             OSMemPut((OS_MEM  *)&PC_Msg,
                      (void    *)p_msg,
@@ -150,8 +150,7 @@ static void Parser_status (void* pData)
     OSMutexPost((OS_MUTEX   *)&GLOBAL_DATA_PROTECT,
                 (OS_OPT      )OS_OPT_POST_NONE,
                 (OS_ERR     *)&err);
-    
-    
+
     Cmd_CarStatus.seq_number.value  = *(uint16_t*)pData;
     Cmd_CarStatus.cmd_id            =  (uint16_t )CMD_STATUS;
 
@@ -170,26 +169,18 @@ static void Parser_status (void* pData)
 
 static void Parser_control (void* pData)
 {
-    uint8_t i = 0;
     OS_ERR         err;
     CONTROL_INFO_T Cmd_Control;
-    uint8_t * PacketBuff = (uint8_t*)pData;
+    uint8_t        datalen;
     
-    Cmd_Control.header = (uint16_t)0xBB55;
-    memcpy((void*)&(Cmd_Control.data), (void*)&PacketBuff[4], sizeof(CONTROL_INFO));
-    Cmd_Control.checksum = PacketBuff[4];
-    
-    // Calulate XOR checksum
-    for(i = 1; i < sizeof(CONTROL_INFO); i++)
-    {
-        Cmd_Control.checksum ^= PacketBuff[4+i];
-    }
+    FramePack((uint8_t *)pData, sizeof(SEQ_NUM) + sizeof(uint16_t) + sizeof(CONTROL_INFO),
+              (uint8_t *)&Cmd_Control);
 
     OSMemPut((OS_MEM  *)&PC_Msg,
              (void    *)pData,
              (OS_ERR  *)&err);
 
-    //RC_PrintBlock((uint8_t *)&(Cmd_Control), sizeof(CONTROL_INFO_T));
+    RC_PrintBlock((uint8_t *)&(Cmd_Control), sizeof(CONTROL_INFO_T));
     //PC_PrintBlock((uint8_t *)&(Cmd_Control), sizeof(CONTROL_INFO_T));
 }
 
